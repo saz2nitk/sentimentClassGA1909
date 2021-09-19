@@ -1,0 +1,12 @@
+data_load:
+  train_path: D:/Academia/Learning/GreyAtom/movie-review-sentiment-analysis/data/train.tsv
+  test_path:  D:/Academia/Learning/GreyAtom/movie-review-sentiment-analysis/data/test.tsv
+ml:
+  classifier_name: RandomForestClassifier
+  x_col_name: Phrase
+  y_col_name: Sentiment
+nlp:
+  stopword_file_path:  D:/Academia/Learning/GreyAtom/movie-review-sentiment-analysis/data/stopwordlist.txt
+api:
+  url: 'localhost'
+  port: 5006

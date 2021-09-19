@@ -19,10 +19,12 @@ import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score,precision_score,recall_score,f1_score
 #from preprocessor import Preprocess
 import flask
+import yaml
 from flask import Flask,request
 
 app = Flask(__name__)
@@ -38,6 +40,9 @@ class NLP:
         return vect.transform(data)
     
 class ML:
+    
+    with open('config/config','r') as fl:
+        config = yaml.load(fl)
     
     def __init__(self):
         self.__clf = None
@@ -70,7 +75,8 @@ class ML:
         return xTrain,xTest,yTrain,yTest
     
     def trainModel(self,tfidfTrain,yTrain):
-        clf = RandomForestClassifier()
+        #clf = RandomForestClassifier()
+        clf = DecisionTreeClassifier()
         clf.fit(tfidfTrain,yTrain)
         return clf
     
@@ -79,15 +85,17 @@ class ML:
         #xTestProcessed = [preprocessObj.removeSpecialChar(text) for text in xTest]
         nlpObj = NLP()
         tfidfMatrix = nlpObj.transform(self.__vect,xTest)
-        return self.__clf.predict(tfidfMatrix)
+        return [str(pred) for pred in self.__clf.predict(tfidfMatrix)]
     
     def main(self):
-        path = 'data/train.tsv'
+        path = self.config['data_load']['train_path']
         df = self.dataLoadFromExcel(path,'\t')
         #df = self.convertToDf(dataDict)
         #preprocessObj = Preprocess()
         #df['articles'] = df.articles.apply(lambda x: preprocessObj.removeSpecialChar(x))
-        xTrain,xTest,yTrain,yTest = self.splitData(df,'Phrase','Sentiment')
+        xTrain,xTest,yTrain,yTest = self.splitData(df,
+                                                   self.config['ml']['x_col_name'],
+                                                   self.config['ml']['y_col_name'])
         nlpObj = NLP()
         self.__vect = nlpObj.fitVectorizer(xTrain)
         tfidfMatrix = nlpObj.transform(self.__vect,xTrain)
@@ -102,9 +110,8 @@ def givePred():
        preds = mlObj.predict(dataDict['Phrase'])
        return json.dumps({'class':list(preds)})
        
-app.run('localhost',5004)
-        
-        
+app.run(mlObj.config['api']['url'],mlObj.config['api']['port'])
+    
         
         
         
